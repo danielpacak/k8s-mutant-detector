@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: non-mutant
+  name: non-mutant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: non-mutant
+  template:
+    metadata:
+      labels:
+        app: non-mutant
+    spec:
+      containers:
+        - name: non-mutant
+          image: danielpacak/docker-mutant-image:1.0@sha256:407063a54c8c3dda1d553386dec4211a38c8c43d65e7353a4edd236994b1cdf5
+          imagePullPolicy: Always

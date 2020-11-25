@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mutant
+  name: mutant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mutant
+  template:
+    metadata:
+      labels:
+        app: mutant
+    spec:
+      containers:
+        - name: mutant
+          image: danielpacak/docker-mutant-image:1.0
+          imagePullPolicy: Always
