@@ -1,5 +1,7 @@
 # k8s-mutant-detector
 
+> Detects mutant workloads in your Kubernetes cluster.
+
 ## TL;DR;
 
 This is a simple Kubernetes ReplicaSet controller that detects mutant ReplicaSets. We define mutant ReplicaSet
@@ -9,7 +11,7 @@ Let's consider the following descriptor of a sample Deployment. It has two conta
 and `redis:5` images. If any of those images is mutant you may end up with pods running in your cluster in different
 versions.
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,6 +41,43 @@ screenshot. The value of the `mutant/status` annotation aggregates image digests
 ReplicaSet. Then the value of the `is-mutant` label is the boolean output of anaylzing the mutant state.
 
 ![](docs/k8s-mutant-detector.png)
+
+## Why don't you use static analysis?
+
+You cannot reliably detect mutant workloads with static analysis tools that lint or check your YAML
+descriptors or Helm chart templates. Even if someone is using image references that may look like immutable and
+semantically version, in reality they may have good reasons to override existing tags from time to time.
+
+The only way is to look into `containerStatuses` of a running pod.
+
+```yaml
+apiVersion: v1
+kind: Pod
+status:
+  containerStatuses:
+  - containerID: docker://c8215b5c1b8e3eab3e8beba0da5be4680a6e6d69eba865c6177c93df212e616f
+    image: nginx:1.16
+    imageID: docker-pullable://nginx@sha256:d20aa6d1cae56fd17cd458f4807e0de462caf2336f0b70b5eeb69fcaaf30dd9c
+    lastState: {}
+    name: nginx
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2020-11-25T11:04:25Z"
+  - containerID: docker://3b94f393ff0e1e5fb94a769600275c6ef818f84d73eeac3ec897c43d32c7e15e
+    image: redis:5
+    imageID: docker-pullable://redis@sha256:82451b5a633f575c3ddd32765b228ae7d3585323dd089903bad29eefe5ac77e5
+    lastState: {}
+    name: redis
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2020-11-25T11:04:25Z"
+```
 
 ## Examples
 
@@ -104,4 +143,8 @@ ReplicaSet. Then the value of the `is-mutant` label is the boolean output of ana
 }
 ```
 
-https://kubernetes.io/docs/concepts/containers/images/
+## References
+
+1. https://www.whitesourcesoftware.com/free-developer-tools/blog/overcoming-dockers-mutable-image-tags/
+2. https://sysdig.com/blog/toctou-tag-mutability/
+3. https://kubernetes.io/docs/concepts/containers/images/
